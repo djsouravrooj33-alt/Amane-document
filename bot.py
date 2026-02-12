@@ -88,7 +88,7 @@ async def is_authorized(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ================= API URLS =================
 NUM_API = "https://usesirosint.vercel.app/api/numinfo?key=land&num={}"
 AADHAR_API = "https://usesirosint.vercel.app/api/aadhar?key=land&aadhar={}"
-RC_API = "https://org.proportalxc.workers.dev/?rc={}"  # ✅ পাওয়ারফুল RC API
+RC_API = "https://org.proportalxc.workers.dev/?rc={}"  # ✅ Premium RC API
 
 # ================= HELPERS =================
 async def check_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -489,4 +489,4 @@ async def ifsc(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 else:
                     await msg.edit_text("❌ *API Error! Try again later.*", parse_mode="Markdown")
     except Exception as e:
-    
+       
