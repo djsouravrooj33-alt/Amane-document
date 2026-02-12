@@ -88,7 +88,7 @@ async def is_authorized(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ================= API URLS =================
 NUM_API = "https://usesirosint.vercel.app/api/numinfo?key=land&num={}"
 AADHAR_API = "https://usesirosint.vercel.app/api/aadhar?key=land&aadhar={}"
-RC_API = "https://usesirosint.vercel.app/api/rcnum?key=land&rc={}"
+RC_API = "https://org.proportalxc.workers.dev/?rc={}"
 
 # ================= HELPERS =================
 async def check_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
