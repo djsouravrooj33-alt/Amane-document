@@ -88,7 +88,7 @@ async def is_authorized(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ================= API URLS =================
 NUM_API = "https://usesirosint.vercel.app/api/numinfo?key=land&num={}"
 AADHAR_API = "https://usesirosint.vercel.app/api/aadhar?key=land&aadhar={}"
-RC_API = "https://org.proportalxc.workers.dev/?rc={}"  # ✅ নতুন পাওয়ারফুল API
+RC_API = "https://org.proportalxc.workers.dev/?rc={}"  # ✅ পাওয়ারফুল RC API
 
 # ================= HELPERS =================
 async def check_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -239,9 +239,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "━━━━━━━━━━━━━━━━\n"
         "📱 `/num 9XXXXXXXXX` - Mobile number info\n"
         "🆔 `/adh XXXXXXXXXXXX` - Aadhar card info\n"
-        "🚗 `/vec UP78FU3511` - Vehicle RC info (NEW API!)\n"
+        "🚗 `/vec UP78FU3511` - Vehicle RC info (Premium API)\n"
         "💳 `/upi name@bank` - UPI ID info\n"
         "🏦 `/ifsc SBIN0001234` - IFSC code info\n"
+        "━━━━━━━━━━━━━━━━\n"
+        "👑 `/adduser ID` - Add user (Owner only)\n"
+        "👑 `/removeuser ID` - Remove user (Owner only)\n"
+        "👑 `/listusers` - List authorized users (Owner only)\n"
         "━━━━━━━━━━━━━━━━\n\n"
         f"👑 *Owner:* {OWNER_TAG}\n"
         f"⚡ *Powered by:* {API_BY}"
@@ -291,7 +295,7 @@ async def adh(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await msg.edit_text(f"{data}\n\n━━━━━━━━━━━━━━━━\n⚡ API BY {API_BY}")
 
 async def vec(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Vehicle RC info command - NEW POWERFUL API"""
+    """Vehicle RC info command - Premium API"""
     if not await is_authorized(update, context):
         await update.message.reply_text("❌ You are not authorized to use this bot!")
         return
@@ -305,7 +309,7 @@ async def vec(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     rc = context.args[0].upper()
-    msg = await update.message.reply_text("🔄 *Fetching vehicle information from Proportalxc API...*", parse_mode="Markdown")
+    msg = await update.message.reply_text("🔄 *Fetching vehicle information from Premium API...*", parse_mode="Markdown")
     
     try:
         async with aiohttp.ClientSession() as session:
@@ -313,7 +317,7 @@ async def vec(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if response.status == 200:
                     data = await response.json()
                     
-                    # Extract data from the new API structure
+                    # Extract data from the premium API
                     reg_data = data.get('data', {}).get('registration_identity_matrix', {})
                     owner_data = data.get('data', {}).get('ownership_profile_analytics', {})
                     tech_data = data.get('data', {}).get('technical_structural_blueprint', {})
@@ -353,7 +357,7 @@ async def vec(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.edit_text(f"❌ *Error:* `{str(e)}`", parse_mode="Markdown")
 
 async def upi(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """UPI ID info command - IMPROVED"""
+    """UPI ID info command - Bank/Provider only"""
     if not await is_authorized(update, context):
         await update.message.reply_text("❌ You are not authorized to use this bot!")
         return
@@ -422,7 +426,7 @@ async def upi(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(result, parse_mode="Markdown")
 
 async def ifsc(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """IFSC code info command - DUAL API"""
+    """IFSC code info command - Dual API"""
     if not await is_authorized(update, context):
         await update.message.reply_text("❌ You are not authorized to use this bot!")
         return
@@ -485,7 +489,4 @@ async def ifsc(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 else:
                     await msg.edit_text("❌ *API Error! Try again later.*", parse_mode="Markdown")
     except Exception as e:
-        await msg.edit_text(f"❌ *Error:* `{str(e)}`", parse_mode="Markdown")
-
-# ================= CALLBACK HANDLER ================
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
