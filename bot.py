@@ -487,5 +487,5 @@ async def ifsc(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await msg.edit_text(f"❌ *Error:* `{str(e)}`", parse_mode="Markdown")
 
-# ================= CALLBACK HANDLER =================
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TY):
+# ================= CALLBACK HANDLER ================
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
