@@ -1,170 +1,131 @@
 import os
+import asyncio
 import aiohttp
-from telegram import (
-    Update,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup
-)
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
     CommandHandler,
     CallbackQueryHandler,
-    ContextTypes
+    ContextTypes,
 )
 
-# ================= ENV =================
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-OWNER_ID = int(os.getenv("OWNER_ID"))
-GROUP_ID = int(os.getenv("GROUP_ID"))
-CHANNEL = os.getenv("CHANNEL")  # @amane_friends
+# ================= CONFIG =================
+BOT_TOKEN = os.getenv("BOT_TOKEN") or "YOUR_BOT_TOKEN"
+OWNER_ID = 8145485145
+GROUP_ID = -1003296016362
+CHANNEL_USERNAME = "@amane_friends"
 
-FOOTER = "\n\n━━━━━━━━━━━━━━\nAPI by @amane_friends\nOwner @amane_friends"
+OWNER_TAG = "@amane_friends"
+API_BY = "@amane_friends"
 
-# ================= AUTH =================
-async def is_authorized(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    chat_id = update.effective_chat.id
+# ================= API URLS =================
+NUM_API = "https://usesirosint.vercel.app/api/numinfo?key=land&num={}"
+AADHAR_API = "https://usesirosint.vercel.app/api/aadhar?key=land&aadhar={}"
+RC_API = "https://usesirosint.vercel.app/api/rcnum?key=land&rc={}"
 
-    if user_id == OWNER_ID:
-        return True
-
-    if chat_id != GROUP_ID:
-        await update.message.reply_text("❌ This bot works only in authorized group.")
-        return False
-
+# ================= HELPERS =================
+async def check_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        member = await context.bot.get_chat_member(CHANNEL, user_id)
-        if member.status in ("left", "kicked"):
-            await update.message.reply_text(
-                f"🚫 Join {CHANNEL} first to use this bot."
-            )
-            return False
+        member = await context.bot.get_chat_member(CHANNEL_USERNAME, update.effective_user.id)
+        return member.status in ["member", "administrator", "creator"]
     except:
-        await update.message.reply_text(
-            f"⚠️ Please join {CHANNEL} first."
-        )
         return False
 
-    return True
 
-
-# ================= FETCH =================
-async def fetch(url):
+async def fetch_api(url):
     async with aiohttp.ClientSession() as session:
-        async with session.get(url, timeout=15) as r:
+        async with session.get(url, timeout=20) as r:
             return await r.text()
 
 
-# ================= START + MENU =================
+# ================= START =================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [
-        [InlineKeyboardButton("📱 Number Info", callback_data="num")],
-        [InlineKeyboardButton("🆔 Aadhaar Info", callback_data="adh")],
-        [InlineKeyboardButton("🚗 Vehicle Info", callback_data="vec")],
-        [InlineKeyboardButton("💳 UPI Info", callback_data="upi")],
-        [InlineKeyboardButton("🏦 IFSC Info", callback_data="ifsc")],
-    ]
+    if not await check_channel(update, context):
+        btn = [[InlineKeyboardButton("🔔 Join Channel", url=f"https://t.me/{CHANNEL_USERNAME.replace('@','')}")]]
+        await update.message.reply_text(
+            "❌ Bot ব্যবহার করতে হলে channel join করতে হবে",
+            reply_markup=InlineKeyboardMarkup(btn)
+        )
+        return
 
-    await update.message.reply_text(
-        "🔍 Select search option:",
-        reply_markup=InlineKeyboardMarkup(keyboard)
+    text = (
+        "🤖 *Welcome to Document Bot*\n\n"
+        "🔍 Available Commands:\n"
+        "/num <number>\n"
+        "/adh <aadhar>\n"
+        "/vec <vehicle>\n"
+        "/upi <upi_id>\n"
+        "/ifsc <ifsc>\n\n"
+        f"👑 Owner: {OWNER_TAG}\n"
+        f"⚡ API BY: {API_BY}"
     )
-
-
-async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    q = update.callback_query
-    await q.answer()
-
-    msg = {
-        "num": "📱 Use:\n/num 9876543210",
-        "adh": "🆔 Use:\n/adh 123412341234",
-        "vec": "🚗 Use:\n/vec WB12AB1234",
-        "upi": "💳 Use:\n/upi name@bank",
-        "ifsc": "🏦 Use:\n/ifsc SBIN0000001"
-    }
-
-    await q.edit_message_text(msg.get(q.data, "Invalid option"))
+    await update.message.reply_text(text, parse_mode="Markdown")
 
 
 # ================= COMMANDS =================
 async def num(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not await is_authorized(update, context):
-        return
     if not context.args:
-        await update.message.reply_text("Usage: /num 9876543210")
+        await update.message.reply_text("Usage: /num 9XXXXXXXXX")
         return
-    url = f"https://usesirosint.vercel.app/api/numinfo?key=land&num={context.args[0]}"
-    await update.message.reply_text(await fetch(url) + FOOTER)
+    data = await fetch_api(NUM_API.format(context.args[0]))
+    await update.message.reply_text(f"{data}\n\nAPI BY {API_BY}")
 
 
 async def adh(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not await is_authorized(update, context):
-        return
     if not context.args:
-        await update.message.reply_text("Usage: /adh 123412341234")
+        await update.message.reply_text("Usage: /adh XXXXXXXXXXXX")
         return
-    url = f"https://usesirosint.vercel.app/api/aadhar?key=land&aadhar={context.args[0]}"
-    await update.message.reply_text(await fetch(url) + FOOTER)
+    data = await fetch_api(AADHAR_API.format(context.args[0]))
+    await update.message.reply_text(f"{data}\n\nAPI BY {API_BY}")
 
 
 async def vec(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not await is_authorized(update, context):
-        return
     if not context.args:
-        await update.message.reply_text("Usage: /vec WB12AB1234")
+        await update.message.reply_text("Usage: /vec WBXX1234")
         return
-    url = f"https://usesirosint.vercel.app/api/rcnum?key=land&rc={context.args[0]}"
-    await update.message.reply_text(await fetch(url) + FOOTER)
+    data = await fetch_api(RC_API.format(context.args[0]))
+    await update.message.reply_text(f"{data}\n\nAPI BY {API_BY}")
 
-
-# ================= UPI (REALISTIC) =================
-BANK_MAP = {
-    "okhdfc": "HDFC Bank",
-    "okicici": "ICICI Bank",
-    "oksbi": "State Bank of India",
-    "ybl": "Yes Bank",
-    "paytm": "Paytm Payments Bank",
-    "ibl": "IDBI Bank",
-    "axl": "Axis Bank",
-    "upi": "Generic UPI"
-}
 
 async def upi(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not await is_authorized(update, context):
-        return
-
-    if not context.args or "@" not in context.args[0]:
+    if not context.args:
         await update.message.reply_text("Usage: /upi name@bank")
         return
 
-    upi_id = context.args[0].lower()
-    handle = upi_id.split("@")[-1]
-    bank = BANK_MAP.get(handle, "Unknown Bank")
+    upi_id = context.args[0]
+    if "@" not in upi_id:
+        await update.message.reply_text("❌ Invalid UPI ID")
+        return
 
-    text = (
-        f"🔎 UPI ID INFO\n\n"
-        f"• UPI ID: {upi_id}\n"
-        f"• Bank: {bank}\n"
-        f"• Account Holder: Not publicly available\n"
-        f"• IFSC: Not available"
-        f"{FOOTER}"
+    bank = upi_id.split("@")[1].upper()
+    await update.message.reply_text(
+        f"✅ UPI ID: `{upi_id}`\n🏦 Bank: {bank}\n\nAPI BY {API_BY}",
+        parse_mode="Markdown"
     )
-
-    await update.message.reply_text(text)
 
 
 async def ifsc(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not await is_authorized(update, context):
-        return
     if not context.args:
         await update.message.reply_text("Usage: /ifsc SBIN0000001")
         return
-    url = f"https://ifsc.razorpay.com/{context.args[0]}"
-    await update.message.reply_text(await fetch(url) + FOOTER)
+
+    code = context.args[0]
+    url = f"https://ifsc.razorpay.com/{code}"
+
+    try:
+        data = await fetch_api(url)
+        await update.message.reply_text(f"{data}\n\nAPI BY {API_BY}")
+    except:
+        await update.message.reply_text("❌ Invalid IFSC Code")
+
+
+# ================= MENU HANDLER =================
+async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.callback_query.answer("Coming Soon")
 
 
 # ================= MAIN =================
-def main():
+async def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
@@ -176,8 +137,11 @@ def main():
     app.add_handler(CallbackQueryHandler(menu_handler))
 
     print("🤖 Telegram Bot Running...")
-    app.run_polling()
+
+    await app.initialize()
+    await app.start()
+    await asyncio.Event().wait()  # keep alive
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
