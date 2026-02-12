@@ -88,7 +88,7 @@ async def is_authorized(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ================= API URLS =================
 NUM_API = "https://usesirosint.vercel.app/api/numinfo?key=land&num={}"
 AADHAR_API = "https://usesirosint.vercel.app/api/aadhar?key=land&aadhar={}"
-RC_API = "https://org.proportalxc.workers.dev/?rc={}"
+RC_API = "https://org.proportalxc.workers.dev/?rc={}"  # ✅ নতুন পাওয়ারফুল API
 
 # ================= HELPERS =================
 async def check_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -117,20 +117,16 @@ async def fetch_api(url):
 # ================= AUTHORIZATION COMMANDS =================
 async def adduser(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Add user to authorized list (Owner only)"""
-    # Check if owner
     if update.effective_user.id != OWNER_ID:
         await update.message.reply_text("❌ Only owner can use this command!")
         return
     
-    # Check if user ID provided
     if not context.args:
         await update.message.reply_text("📝 *Usage:* `/adduser 123456789`", parse_mode="Markdown")
         return
     
     try:
         user_id = int(context.args[0])
-        
-        # Add to authorized users
         AUTHORIZED_USERS.add(user_id)
         save_authorized_users(AUTHORIZED_USERS)
         
@@ -141,7 +137,6 @@ async def adduser(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode="Markdown"
         )
         
-        # Try to notify the user
         try:
             await context.bot.send_message(
                 user_id,
@@ -155,7 +150,6 @@ async def adduser(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def removeuser(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Remove user from authorized list (Owner only)"""
-    # Check if owner
     if update.effective_user.id != OWNER_ID:
         await update.message.reply_text("❌ Only owner can use this command!")
         return
@@ -167,7 +161,6 @@ async def removeuser(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         user_id = int(context.args[0])
         
-        # Remove from authorized users
         if user_id in AUTHORIZED_USERS:
             AUTHORIZED_USERS.remove(user_id)
             save_authorized_users(AUTHORIZED_USERS)
@@ -185,7 +178,6 @@ async def removeuser(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def listusers(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """List all authorized users (Owner only)"""
-    # Check if owner
     if update.effective_user.id != OWNER_ID:
         await update.message.reply_text("❌ Only owner can use this command!")
         return
@@ -247,7 +239,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "━━━━━━━━━━━━━━━━\n"
         "📱 `/num 9XXXXXXXXX` - Mobile number info\n"
         "🆔 `/adh XXXXXXXXXXXX` - Aadhar card info\n"
-        "🚗 `/vec WBXX1234567` - Vehicle RC info\n"
+        "🚗 `/vec UP78FU3511` - Vehicle RC info (NEW API!)\n"
         "💳 `/upi name@bank` - UPI ID info\n"
         "🏦 `/ifsc SBIN0001234` - IFSC code info\n"
         "━━━━━━━━━━━━━━━━\n\n"
@@ -260,7 +252,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ================= COMMAND HANDLERS =================
 async def num(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Mobile number info command"""
-    # Check authorization
     if not await is_authorized(update, context):
         await update.message.reply_text("❌ You are not authorized to use this bot!")
         return
@@ -281,7 +272,6 @@ async def num(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def adh(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Aadhar card info command"""
-    # Check authorization
     if not await is_authorized(update, context):
         await update.message.reply_text("❌ You are not authorized to use this bot!")
         return
@@ -301,29 +291,69 @@ async def adh(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await msg.edit_text(f"{data}\n\n━━━━━━━━━━━━━━━━\n⚡ API BY {API_BY}")
 
 async def vec(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Vehicle RC info command"""
-    # Check authorization
+    """Vehicle RC info command - NEW POWERFUL API"""
     if not await is_authorized(update, context):
         await update.message.reply_text("❌ You are not authorized to use this bot!")
         return
     
     if not context.args:
-        await update.message.reply_text("🚗 *Usage:* `/vec WBXX1234567`", parse_mode="Markdown")
+        await update.message.reply_text("🚗 *Usage:* `/vec UP78FU3511`", parse_mode="Markdown")
         return
     
     if not await check_channel(update, context):
         await update.message.reply_text("❌ Please join the channel first! /start")
         return
     
-    rc = context.args[0]
-    msg = await update.message.reply_text("🔄 *Fetching vehicle information...*", parse_mode="Markdown")
+    rc = context.args[0].upper()
+    msg = await update.message.reply_text("🔄 *Fetching vehicle information from Proportalxc API...*", parse_mode="Markdown")
     
-    data = await fetch_api(RC_API.format(rc))
-    await msg.edit_text(f"{data}\n\n━━━━━━━━━━━━━━━━\n⚡ API BY {API_BY}")
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(RC_API.format(rc), timeout=20) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    # Extract data from the new API structure
+                    reg_data = data.get('data', {}).get('registration_identity_matrix', {})
+                    owner_data = data.get('data', {}).get('ownership_profile_analytics', {})
+                    tech_data = data.get('data', {}).get('technical_structural_blueprint', {})
+                    insurance_data = data.get('data', {}).get('insurance_security_audit_report', {})
+                    financial_data = data.get('data', {}).get('financial_legal_encumbrance_vault', {})
+                    timeline_data = data.get('data', {}).get('lifecycle_compliance_timeline', {})
+                    rto_data = data.get('data', {}).get('regional_transport_intelligence_grid', {})
+                    
+                    # Format the response
+                    result = (
+                        f"🚗 *VEHICLE RC DETAILS*\n"
+                        f"━━━━━━━━━━━━━━━━\n"
+                        f"📌 *Registration No:* `{reg_data.get('official_registration_id', rc)}`\n"
+                        f"👤 *Owner Name:* `{owner_data.get('legal_asset_holder', 'N/A')}`\n"
+                        f"📍 *Address:* `{owner_data.get('physical_location_address', 'N/A')[:100]}...`\n"
+                        f"🏭 *Vehicle Model:* `{tech_data.get('manufacturer_origin', 'N/A')}`\n"
+                        f"🔧 *Engine:* `{tech_data.get('engine_id_mask', 'N/A')}`\n"
+                        f"🔩 *Chassis:* `{tech_data.get('chassis_id_mask', 'N/A')}`\n"
+                        f"⛽ *Fuel:* `{tech_data.get('propulsion_energy_source', 'N/A')}`\n"
+                        f"📅 *Registration Date:* `{timeline_data.get('inception_registration_date', 'N/A')}`\n"
+                        f"📊 *Vehicle Age:* `{timeline_data.get('chronological_asset_age', 'N/A')}`\n"
+                        f"🏛️ *RTO Office:* `{rto_data.get('zonal_transport_office', 'N/A')}`\n"
+                        f"🏙️ *City:* `{owner_data.get('geo_administrative_city', 'N/A')}`\n"
+                        f"━━━━━━━━━━━━━━━━\n"
+                        f"🛡️ *Insurance:* `{insurance_data.get('underwriting_organization', 'N/A')}`\n"
+                        f"📅 *Insurance Expiry:* `{insurance_data.get('protection_validity_limit', 'N/A')}`\n"
+                        f"💰 *Loan/Lien:* `{financial_data.get('hypothecation_lien_status', 'N/A')}`\n"
+                        f"🏦 *Lien Holder:* `{financial_data.get('lien_holder_institution', 'N/A')}`\n"
+                        f"━━━━━━━━━━━━━━━━\n"
+                        f"⚡ API Developer: @Proportalxc\n"
+                        f"⚡ Powered by: {API_BY}"
+                    )
+                    await msg.edit_text(result, parse_mode="Markdown")
+                else:
+                    await msg.edit_text("❌ *API Error! Please try again later.*", parse_mode="Markdown")
+    except Exception as e:
+        await msg.edit_text(f"❌ *Error:* `{str(e)}`", parse_mode="Markdown")
 
 async def upi(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """UPI ID info command"""
-    # Check authorization
+    """UPI ID info command - IMPROVED"""
     if not await is_authorized(update, context):
         await update.message.reply_text("❌ You are not authorized to use this bot!")
         return
@@ -341,22 +371,58 @@ async def upi(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ *Invalid UPI ID!*\nExample: `name@okhdfcbank`", parse_mode="Markdown")
         return
     
-    bank = upi_id.split("@")[1].upper()
+    psp = upi_id.split("@")[1].upper()
+    
+    # Full PSP/Bank mapping
+    psp_names = {
+        "OKHDFCBANK": "HDFC Bank",
+        "OKSBI": "State Bank of India", 
+        "OKICICI": "ICICI Bank",
+        "OKAXIS": "Axis Bank",
+        "OKKOTAK": "Kotak Mahindra Bank",
+        "OKYESBANK": "Yes Bank",
+        "PAYTM": "Paytm Payments Bank",
+        "PHONEPE": "PhonePe",
+        "YBL": "Yes Bank",
+        "SBIN": "SBI",
+        "HDFCBANK": "HDFC Bank",
+        "ICICI": "ICICI Bank",
+        "AXIS": "Axis Bank",
+        "KOTAK": "Kotak Bank",
+        "INDUS": "IndusInd Bank",
+        "FED": "Federal Bank",
+        "CANARA": "Canara Bank",
+        "BOB": "Bank of Baroda",
+        "PNB": "Punjab National Bank",
+        "UNION": "Union Bank of India",
+        "BANKOFBARODA": "Bank of Baroda",
+        "IDBI": "IDBI Bank",
+        "YESBANK": "Yes Bank",
+        "RBL": "RBL Bank",
+        "AU": "AU Small Finance Bank",
+        "FINO": "FINO Payments Bank",
+        "AIRTEL": "Airtel Payments Bank",
+        "AMAZONPAY": "Amazon Pay",
+        "GOOGLEPAY": "Google Pay",
+        "BHIM": "BHIM UPI"
+    }
+    
+    bank_name = psp_names.get(psp, psp)
     
     result = (
-        f"✅ *UPI Information*\n"
+        f"✅ *UPI INFORMATION*\n"
         f"━━━━━━━━━━━━━━━━\n"
         f"📌 *UPI ID:* `{upi_id}`\n"
-        f"🏦 *Bank/Provider:* `{bank}`\n"
+        f"🏦 *Bank/Provider:* `{bank_name}`\n"
         f"━━━━━━━━━━━━━━━━\n"
+        f"⚡ *Note:* Owner name is not publicly available due to NPCI restrictions\n"
         f"⚡ API BY {API_BY}"
     )
     
     await update.message.reply_text(result, parse_mode="Markdown")
 
 async def ifsc(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """IFSC code info command"""
-    # Check authorization
+    """IFSC code info command - DUAL API"""
     if not await is_authorized(update, context):
         await update.message.reply_text("❌ You are not authorized to use this bot!")
         return
@@ -369,90 +435,57 @@ async def ifsc(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Please join the channel first! /start")
         return
     
-    code = context.args[0]
-    url = f"https://ifsc.razorpay.com/{code}"
+    code = context.args[0].upper()
     msg = await update.message.reply_text("🔄 *Fetching IFSC information...*", parse_mode="Markdown")
     
     try:
+        # Try first API
+        url = f"https://ifsc.datayuge.com/?code={code}"
+        
         async with aiohttp.ClientSession() as session:
             async with session.get(url, timeout=10) as response:
                 if response.status == 200:
                     data = await response.json()
-                    bank_name = data.get('BANK', 'N/A')
-                    branch = data.get('BRANCH', 'N/A')
-                    address = data.get('ADDRESS', 'N/A')
-                    city = data.get('CITY', 'N/A')
-                    district = data.get('DISTRICT', 'N/A')
-                    state = data.get('STATE', 'N/A')
-                    
-                    result = (
-                        f"✅ *IFSC Information*\n"
-                        f"━━━━━━━━━━━━━━━━\n"
-                        f"🏦 *Bank:* `{bank_name}`\n"
-                        f"📍 *Branch:* `{branch}`\n"
-                        f"🏙️ *City:* `{city}`\n"
-                        f"🏛️ *District:* `{district}`\n"
-                        f"🌍 *State:* `{state}`\n"
-                        f"📮 *Address:* `{address[:100]}...`\n"
-                        f"━━━━━━━━━━━━━━━━\n"
-                        f"⚡ API BY {API_BY}"
-                    )
-                    await msg.edit_text(result, parse_mode="Markdown")
+                    if data.get('status') and data.get('data'):
+                        bank_data = data['data']
+                        result = (
+                            f"✅ *IFSC INFORMATION*\n"
+                            f"━━━━━━━━━━━━━━━━\n"
+                            f"🏦 *Bank:* `{bank_data.get('bank', 'N/A')}`\n"
+                            f"📍 *Branch:* `{bank_data.get('branch', 'N/A')}`\n"
+                            f"🏙️ *City:* `{bank_data.get('city', 'N/A')}`\n"
+                            f"🏛️ *District:* `{bank_data.get('district', 'N/A')}`\n"
+                            f"🌍 *State:* `{bank_data.get('state', 'N/A')}`\n"
+                            f"📮 *Address:* `{bank_data.get('address', 'N/A')[:100]}...`\n"
+                            f"━━━━━━━━━━━━━━━━\n"
+                            f"⚡ API BY {API_BY}"
+                        )
+                        await msg.edit_text(result, parse_mode="Markdown")
+                    else:
+                        # Try backup API
+                        backup_url = f"https://ifsc.razorpay.com/{code}"
+                        async with session.get(backup_url, timeout=10) as backup_res:
+                            if backup_res.status == 200:
+                                data = await backup_res.json()
+                                result = (
+                                    f"✅ *IFSC INFORMATION*\n"
+                                    f"━━━━━━━━━━━━━━━━\n"
+                                    f"🏦 *Bank:* `{data.get('BANK', 'N/A')}`\n"
+                                    f"📍 *Branch:* `{data.get('BRANCH', 'N/A')}`\n"
+                                    f"🏙️ *City:* `{data.get('CITY', 'N/A')}`\n"
+                                    f"🏛️ *District:* `{data.get('DISTRICT', 'N/A')}`\n"
+                                    f"🌍 *State:* `{data.get('STATE', 'N/A')}`\n"
+                                    f"📮 *Address:* `{data.get('ADDRESS', 'N/A')[:100]}...`\n"
+                                    f"━━━━━━━━━━━━━━━━\n"
+                                    f"⚡ API BY {API_BY}"
+                                )
+                                await msg.edit_text(result, parse_mode="Markdown")
+                            else:
+                                await msg.edit_text("❌ *Invalid IFSC Code!*", parse_mode="Markdown")
                 else:
-                    await msg.edit_text("❌ *Invalid IFSC Code!*", parse_mode="Markdown")
+                    await msg.edit_text("❌ *API Error! Try again later.*", parse_mode="Markdown")
     except Exception as e:
         await msg.edit_text(f"❌ *Error:* `{str(e)}`", parse_mode="Markdown")
 
 # ================= CALLBACK HANDLER =================
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle inline keyboard buttons"""
-    query = update.callback_query
-    await query.answer()
-    await query.edit_message_text("⚡ Feature coming soon...")
-
-# ================= ERROR HANDLER =================
-async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Log errors"""
-    print(f"Update {update} caused error {context.error}")
-
-# ================= MAIN =================
-def main():
-    """Main function to run the bot"""
-    print("🚀 Starting Telegram Bot...")
-    
-    # Start HTTP server for Render
-    keep_alive()
-    print("✅ HTTP Server active")
-    
-    # Create bot application
-    app = Application.builder().token(BOT_TOKEN).build()
-    
-    # Add command handlers
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("num", num))
-    app.add_handler(CommandHandler("adh", adh))
-    app.add_handler(CommandHandler("vec", vec))
-    app.add_handler(CommandHandler("upi", upi))
-    app.add_handler(CommandHandler("ifsc", ifsc))
-    
-    # Add authorization commands
-    app.add_handler(CommandHandler("adduser", adduser))
-    app.add_handler(CommandHandler("removeuser", removeuser))
-    app.add_handler(CommandHandler("listusers", listusers))
-    
-    # Add button handler
-    app.add_handler(CallbackQueryHandler(button_handler))
-    
-    # Add error handler
-    app.add_error_handler(error_handler)
-    
-    print("🤖 Bot is polling for updates...")
-    print(f"👑 Owner: {OWNER_ID}")
-    print(f"📊 Authorized Users: {len(AUTHORIZED_USERS)}")
-    print(f"⚡ API BY: {API_BY}")
-    
-    # Start polling
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
-
-if __name__ == "__main__":
-    main()
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TY
