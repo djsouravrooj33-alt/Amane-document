@@ -490,3 +490,32 @@ async def ifsc(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     await msg.edit_text("❌ *API Error! Try again later.*", parse_mode="Markdown")
 except Exception as e:
     await msg.edit_text(f"❌ *Error:* `{str(e)}`", parse_mode="Markdown")
+# ================= MAIN =================
+def main():
+    """Start the bot"""
+    # Start HTTP server for Render
+    keep_alive()
+    
+    # Create application
+    app = Application.builder().token(BOT_TOKEN).build()
+    
+    # Add command handlers
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("num", num))
+    app.add_handler(CommandHandler("adh", adh))
+    app.add_handler(CommandHandler("vec", vec))
+    app.add_handler(CommandHandler("upi", upi))
+    app.add_handler(CommandHandler("ifsc", ifsc))
+    
+    # Owner commands
+    app.add_handler(CommandHandler("adduser", adduser))
+    app.add_handler(CommandHandler("removeuser", removeuser))
+    app.add_handler(CommandHandler("listusers", listusers))
+    
+    print("✅ Bot is starting...")
+    
+    # Start polling
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
