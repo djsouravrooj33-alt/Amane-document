@@ -488,5 +488,5 @@ async def ifsc(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                 await msg.edit_text("❌ *Invalid IFSC Code!*", parse_mode="Markdown")
                 else:
                     await msg.edit_text("❌ *API Error! Try again later.*", parse_mode="Markdown")
-    except Exception as e:
-        
+except Exception as e:
+    await msg.edit_text(f"❌ *Error:* `{str(e)}`", parse_mode="Markdown")
