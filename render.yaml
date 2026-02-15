@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: upi-webhook-bot
+    env: python
+    pythonVersion: 3.11
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: gunicorn bot:app
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: OWNER_ID
+        value: "8145485145"
+      - key: ALLOWED_GROUP
+        value: "-1003296016362"
