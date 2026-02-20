@@ -36,10 +36,11 @@ if not BOT_TOKEN:
 
 OWNER_ID = 8145485145
 CHANNEL_USERNAME = "@amane_friends"
+ALLOWED_GROUP_ID = -1003296016362
 API_BY = "@amane_friends"
 
-NUM_API = "https://usesirosint.vercel.app/api/numinfo?key=land&num={}"
-AADHAR_API = "https://usesirosint.vercel.app/api/aadhar?key=land&aadhar={}"
+NUM_API = "https://num.proportalxc.workers .dev/?mobile={}"
+AADHAR_API = "https://api.paanel.shop/numapi.php?action=api&key=SALAAR&aadhar={}"
 RC_API = "https://org.proportalxc.workers.dev/?rc={}"
 
 # ================= AUTH SYSTEM =================
